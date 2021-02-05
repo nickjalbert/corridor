@@ -3,7 +3,7 @@
 import gym
 
 
-class CorridorEnv(gym.Env):
+class Corridor(gym.Env):
     metadata = {"render.modes": ["human"]}
 
     # Check [env_config] for corridor length, default to 10
@@ -37,10 +37,10 @@ class CorridorEnv(gym.Env):
         pass
 
 
-# Unit tests for CorridorEnv
+# Unit tests for Corridor
 def run_tests():
-    print("Testing CorridorEnv...")
-    env = CorridorEnv({"length": 5})
+    print("Testing Corridor...")
+    env = Corridor({"length": 5})
     assert env.reset() == 0, "Initial position is 0"
     # Left step in initial position hits a wall and does not change state
     state, reward, done, info = env.step(0)
