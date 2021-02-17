@@ -1,17 +1,15 @@
 # Env that models a 1D corridor (you can move left or right)
 # Goal is to get to the end (i.e. move right [length] number of times)
-import gym
+import agentos
 
 
-class Corridor(gym.Env):
-    metadata = {"render.modes": ["human"]}
+class Corridor(agentos.Environment):
 
     # Check [env_config] for corridor length, default to 10
-    def __init__(self, env_config=None):
-        self.env_config = env_config if env_config else {}
-        self.length = int(self.env_config.get("length", 10))
-        self.action_space = gym.spaces.Discrete(2)
-        self.observation_space = gym.spaces.Discrete(self.length + 1)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not hasattr(self, "length"):
+            self.length = 10
         self.reset()
 
     def step(self, action):
@@ -30,17 +28,11 @@ class Corridor(gym.Env):
         self.position = 0
         return self.position
 
-    def render(self, mode="human"):
-        pass
-
-    def close(self):
-        pass
-
 
 # Unit tests for Corridor
 def run_tests():
     print("Testing Corridor...")
-    env = Corridor({"length": 5})
+    env = Corridor(length=5)
     assert env.reset() == 0, "Initial position is 0"
     # Left step in initial position hits a wall and does not change state
     state, reward, done, info = env.step(0)
