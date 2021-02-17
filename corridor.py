@@ -24,6 +24,10 @@ class Corridor(agentos.Environment):
     def done(self):
         return self.position >= self.length
 
+    @property
+    def valid_actions(self):
+        return [0, 1]
+
     def reset(self):
         self.position = 0
         return self.position
