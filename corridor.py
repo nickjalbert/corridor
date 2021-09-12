@@ -1,74 +1,103 @@
 # Env that models a 1D corridor (you can move left or right)
 # Goal is to get to the end (i.e. move right [length] number of times)
 import agentos
+import numpy as np
+from dm_env import specs
 
 
+# Simulates a 1D corridor
 class Corridor(agentos.Environment):
-
-    # Check [env_config] for corridor length, default to 10
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not hasattr(self, "length"):
-            self.length = 10
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.length = int(agentos.parameters.corridor_length)
+        self.action_space = [0, 1]
+        self.observation_space = list(range(self.length + 1))
         self.reset()
 
     def step(self, action):
-        assert action in [0, 1]
+        assert action in self.action_space
         if action == 0:
-            self.position = max(self.position - 1, 0)
+            self.position = np.array(
+                [np.float32(max(self.position[0] - 1, 0))]
+            )
         else:
-            self.position = min(self.position + 1, self.length)
-        return (self.position, -1, self.done, {})
+            self.position = np.array(
+                [np.float32(min(self.position[0] + 1, self.length))]
+            )
+        return (self.position, np.float32(-1), self.done, dict())
 
-    @property
-    def done(self):
-        return self.position >= self.length
+    def reset(self):
+        self.position = np.array([np.float32(0)])
+        return self.position
+
+    def get_spec(self):
+        observations = specs.Array(
+            shape=(1,), dtype=np.dtype("float32"), name="observations"
+        )
+        actions = specs.DiscreteArray(num_values=2, name="actions")
+        rewards = specs.Array(
+            shape=(), dtype=np.dtype("float32"), name="reward"
+        )
+        discounts = specs.BoundedArray(
+            shape=(),
+            dtype=np.dtype("float32"),
+            name="discount",
+            minimum=0.0,
+            maximum=1.0,
+        )
+        return agentos.EnvironmentSpec(
+            observations=observations,
+            actions=actions,
+            rewards=rewards,
+            discounts=discounts,
+        )
 
     @property
     def valid_actions(self):
-        return [0, 1]
+        return self.action_space
 
-    def reset(self):
-        self.position = 0
-        return self.position
+    @property
+    def done(self):
+        return self.position[0] >= self.length
 
 
 # Unit tests for Corridor
 def run_tests():
     print("Testing Corridor...")
-    env = Corridor(length=5)
+    agentos.parameters.__dict__["corridor_length"] = 5
+    env = Corridor()
     assert env.reset() == 0, "Initial position is 0"
     # Left step in initial position hits a wall and does not change state
     state, reward, done, info = env.step(0)
     assert state == 0
     assert reward == -1
-    assert done is False
+    assert not done
     # Right step should move agent closer to goal
     state, reward, done, info = env.step(1)
     assert state == 1
     assert reward == -1
-    assert done is False
+    assert not done
     # Left step returns agent to initial position
     state, reward, done, info = env.step(0)
     assert state == 0
     assert reward == -1
-    assert done is False
+    assert not done
     # Step to end of corridor
     state, reward, done, info = env.step(1)
     assert state == 1
-    assert done is False
+    assert not done
     state, reward, done, info = env.step(1)
     assert state == 2
-    assert done is False
+    assert not done
     state, reward, done, info = env.step(1)
     assert state == 3
-    assert done is False
+    assert not done
     state, reward, done, info = env.step(1)
     assert state == 4
-    assert done is False
+    assert not done
     state, reward, done, info = env.step(1)
     assert state == 5
-    assert done is True
+    assert done
     print("Tests passed!")
 
 

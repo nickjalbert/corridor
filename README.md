@@ -9,3 +9,10 @@ and Sutton and Barto's examples (e.g. example 13.1 on page 323).
 
 
 Compatible with [AgentOS](https://github.com/agentos-project/agentos).
+
+## Formatting and Linting
+
+```
+./scripts/format_code.py
+./scripts/lint_code.py
+```
